@@ -43,6 +43,8 @@ function createModal(id, title, contentHTML, showRefresh = false) {
         .btn-tab.active { background: #007acc; color: #fff; }
         input[type="color"] { -webkit-appearance: none; width: 60px; height: 38px; border: none; padding: 0; background: none; cursor: pointer; }
         input[type="color"]::-webkit-color-swatch { border: 1px solid #333; border-radius: 6px; }
+        .loader { border: 4px solid #333; border-top: 4px solid #007acc; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     `;
     document.head.appendChild(style);
     const overlay = document.createElement("div");
@@ -195,6 +197,30 @@ function initLootUI() {
                 container.appendChild(a);
             });
         }
+    };
+}
+
+function initPayloadUpdater() {
+    createModal("payloadModal", "Update Payloads", '<div id="payloadUpdateContent" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;"><p style="text-align:center;color:#ccc;margin-bottom:15px;">Update your local payload library from the official repository. <br><br>This will overwrite all your payloads!</p><button id="btnRunUpdate" class="btn-update-info">Update Now</button></div>');
+    const ul = document.querySelector("#sidebarnav ul");
+    if (!ul || document.getElementById("payloadUpdateBtn")) return;
+    const li = document.createElement("li");
+    li.innerHTML = `<a href="#" id="payloadUpdateBtn"><i class="material-icons">system_update_alt</i><div class="sidebarsub">Update Payloads<div class="sidebarmini">Update payload library</div></div></a>`;
+    ul.appendChild(li);
+    document.getElementById("payloadUpdateBtn").onclick = (e) => {
+        e.preventDefault();
+        showModal("payloadModal");
+        const container = document.getElementById("payloadUpdateContent");
+        container.innerHTML = '<p style="text-align:center;color:#ccc;margin-bottom:15px;">Update your local payload library from the official repository. <br><br>This will overwrite all your payloads!</p><button id="btnRunUpdate" class="btn-update-info">Update Now</button>';
+        document.getElementById("btnRunUpdate").onclick = async () => {
+            container.innerHTML = '<div class="loader"></div><div style="margin-top:15px;color:#aaa;">Updating payloads...</div>';
+            const res = await sendServerRequest("updatepayloads", undefined, true, true);
+            if (res && res.okay) {
+                container.innerHTML = `<i class="material-icons" style="font-size:40px;color:#00ffaa;margin-bottom:10px;">check_circle</i><div style="color:#fff;">${res.message}</div>`;
+            } else {
+                container.innerHTML = `<i class="material-icons" style="font-size:40px;color:#ff5252;margin-bottom:10px;">error</i><div style="color:#fff;">${res?.error || "Update failed"}</div>`;
+            }
+        };
     };
 }
 
@@ -482,10 +508,11 @@ function startInitialization() {
         const isSidebarVisible = sidebar && sidebar.offsetParent !== null && window.getComputedStyle(sidebar).display !== 'none';
 
         if (isSidebarVisible && !initialized) {
+            initPagerSVG();
             initLootUI();
             initPagerSkinner();
+            initPayloadUpdater();
             initSystemInfo();
-            initPagerSVG();
             fetch("/api/api_ping").then(res => res.json()).then(data => { if (data.serverid) localStorage.setItem("serverid", data.serverid); }).catch(()=>{});
             initialized = true;
         }

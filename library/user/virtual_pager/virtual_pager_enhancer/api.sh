@@ -19,6 +19,51 @@ url_decode() {
     printf '%b' "${encoded//%/\\x}" | sed 's/+/ /g'
 }
 
+update_payloads(){
+
+    local TEMP_DIR="/tmp/payload_update"
+    local PAYLOADS_URL="https://github.com/hak5/wifipineapplepager-payloads/archive/refs/heads/master.zip"
+
+    rm -rf "$TEMP_DIR"
+    mkdir -p "$TEMP_DIR"
+
+    if ! command -v unzip >/dev/null 2>&1; then
+        opkg update >/dev/null 2>&1
+        opkg install unzip || { 
+            echo "Content-Type: application/json"
+            echo ""
+            echo '{"okay":false,"error":"Failed To Install Unzip"}'
+            exit 0; 
+        }
+    fi
+
+    if ! wget -q --no-check-certificate "$PAYLOADS_URL" -O "$TEMP_DIR/master.zip"; then
+        echo "Content-Type: application/json"
+        echo ""
+        echo '{"okay":false,"error":"Failed To Download Payloads"}'
+        exit 0
+    fi
+
+    unzip -q "$TEMP_DIR/master.zip" -d "$TEMP_DIR" >/dev/null 2>&1
+
+    local UNPACKED_PAYLOAD_DIR="$TEMP_DIR/wifipineapplepager-payloads-master/library"
+    local PAYLOAD_DIR="/mmc/root/payloads/"
+
+
+    if [ -d "$PAYLOAD_DIR" ]; then
+        cp -rf "$UNPACKED_PAYLOAD_DIR/." "$PAYLOAD_DIR/" 2>/dev/null
+        echo "Content-Type: application/json"
+        echo ""
+        echo '{"okay":true,"message":"Updated Successfully"}'
+    else
+        echo "Content-Type: application/json"
+        echo ""
+        echo '{"okay":false,"error":"Could Not Unzip Payloads"}'
+    fi
+
+    rm -rf "$TEMP_DIR"
+}
+
 check_authentication() {
     local token="$1"
     local serverid="$2"
@@ -132,7 +177,7 @@ for param in $(echo "$QUERY_STRING" | tr '&' ' '); do
     esac
 done
 
-AUTH_ACTIONS=("command" "setconfig" "systeminfo")
+AUTH_ACTIONS=("command" "setconfig" "systeminfo" "updatepayloads")
 UNAUTH_ACTIONS=("listconfig" "getimage")
 
 if [[ " ${AUTH_ACTIONS[*]} " =~ " $ACTION " ]]; then
@@ -160,6 +205,9 @@ case "$ACTION" in
         ;;
     getimage)
         get_image "$DATA"
+        ;;
+    updatepayloads)
+        update_payloads
         ;;
     *)
         echo "Content-Type: application/json"

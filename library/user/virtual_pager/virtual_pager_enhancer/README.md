@@ -1,4 +1,4 @@
-# Virtual Pager Enhancer - v2.2.1
+# Virtual Pager Enhancer - v2.3
 
 ## Overview
 
@@ -32,3 +32,8 @@ Once finished, HARD refresh the Virtual Pager web page. If everything worked cor
   * Disk usage
   * RAM usage
   * CPU usage
+
+* 🚀 **Update Payloads**
+  Update your payloads from the official github repo
+
+

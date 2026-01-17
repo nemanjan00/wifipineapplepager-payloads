@@ -2,7 +2,7 @@
 # Title: Virtual Pager Enhancer
 # Author: Rektile404
 # Description: Tool used to add functionality to the virtual pager
-# Version: 2.2.1
+# Version: 2.3
 
 CONFIG_PATH="./config"
 CONFIG_FILE="config.json"
@@ -19,7 +19,7 @@ INDEX_FILE="index.html"
 VIRTUAL_PAGER_ENHANCER_TAG="<!-- Virtual Pager Enhancer BEGIN -->"
 VIRTUAL_PAGER_ENHANCER_END="<!-- Virtual Pager Enhancer END -->"
 
-CURRENT_VERSION="2.2.1"
+CURRENT_VERSION="2.3"
 SERVER_PORT=4040
 SERVICE_FILE="/etc/init.d/virtual_pager_enhancer_server"
 
